@@ -2,7 +2,7 @@
 - Tested on python 3.6.13, ubuntu 18.04 
 - Anaconda
 
-#Installation 
+## Installation 
 
 ```
 conda create -n VideoOutpainting -python=3.6.13
@@ -23,7 +23,7 @@ pip install imageio-ffmpeg
 - download weights for COSNet (VOS) from https://github.com/carrierlxk/COSNet
      ./co_attention.pth
 
-#Usage
+## Usage
 
 - Save video frames
 ```bash
@@ -33,9 +33,9 @@ python VidToFrames.py --path ./name.mp4 --outroot ./frames/
 - Video outpainting:
 ```bash
 cd tool
-python video_outpaint.py --path ../frames/ --outroot ../results/frames/ --W_scale 200
+python video_outpaint.py --path ../frames/ --outroot ../results/frames/ --W_scale 600
 ```
-replace 200 by amount of pixels added to each side.
+replace 600 by amount of pixels added to each side.
 
 
 ## Acknowledgments

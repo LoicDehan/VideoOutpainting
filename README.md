@@ -2,7 +2,7 @@
 - Tested on python 3.6.13, ubuntu 18.04 
 - Anaconda
 
-#Installation 
+##Installation 
 
 ```
 conda create -n VideoOutpainting -python=3.6.13
@@ -23,7 +23,7 @@ pip install imageio-ffmpeg
 - download weights for COSNet (VOS) from https://github.com/carrierlxk/COSNet
      ./co_attention.pth
 
-#Usage
+##Usage
 
 - Save video frames
 ```bash

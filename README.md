@@ -33,9 +33,9 @@ python VidToFrames.py --path ./name.mp4 --outroot ./frames/
 - Video outpainting:
 ```bash
 cd tool
-python video_outpaint.py --path ../frames/ --outroot ../results/frames/ --W_scale 200
+python video_outpaint.py --path ../frames/ --outroot ../results/frames/ --W_scale 600
 ```
-replace 200 by amount of pixels added to each side.
+replace 600 by amount of pixels added to each side.
 
 
 ## Acknowledgments

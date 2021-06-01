@@ -5,7 +5,7 @@
 ## Installation 
 
 ```
-conda create -n VideoOutpainting -python=3.6.13
+conda create -n VideoOutpainting python=3.6.13
 conda activate VideoOutpainting
 conda install pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 matplotlib tensorboard scipy opencv -c pytorch
 pip install tensorflow-gpu==1.15.2

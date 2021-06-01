@@ -119,8 +119,8 @@ def getMasks(args,outPath,data_dir,oriShape):
                 else:
                     mask[hi][wi] = 0
      
-        mask = cv2.dilate(mask,np.ones((5,5),np.uint8),iterations = 15)
-        mask = cv2.erode(mask,np.ones((5,5),np.uint8),iterations = 10)
+        mask = cv2.dilate(mask,np.ones((5,5),np.uint8),iterations = 5)#15
+        #mask = cv2.erode(mask,np.ones((5,5),np.uint8),iterations = 10)
         
         mask = cv2.resize(mask, oriShape, interpolation = cv2.INTER_AREA)
         masks.append(mask)
@@ -557,7 +557,7 @@ def setup_video_completion(args,video,corrFlowF,corrFlowB,outPath,FG_removal,fir
         flow_mask = np.tile(flow_mask[..., None], (1, 1, nFrame))
 
     return video,mask,corrFlowF,corrFlowB,end_point
-def video_completion(Gs,args,video,mask,videoFlowF,videoFlowB,end_point,corrFlowFori,corrFlowBori,maskVOS,FG_removal):
+def video_completion(Gs,args,video,mask,videoFlowF,videoFlowB,end_point,maskVOS,FG_removal):
     imgH, imgW,channels,nFrame = video.shape
     iter = 0
     mask_tofill = mask
@@ -570,8 +570,8 @@ def video_completion(Gs,args,video,mask,videoFlowF,videoFlowB,end_point,corrFlow
     flow_mask =  np.copy(mask)
     if(not(FG_removal)):
         # Edge completion.
-        FlowF_edge = edge_completion(args, videoFlowF, flow_mask, 'forward',end_point,corrFlowFori,maskVOS)
-        FlowB_edge = edge_completion(args, videoFlowB, flow_mask, 'backward',end_point,corrFlowBori,maskVOS)
+        FlowF_edge = edge_completion(args, videoFlowF, flow_mask, 'forward',end_point,videoFlowF,maskVOS)
+        FlowB_edge = edge_completion(args, videoFlowB, flow_mask, 'backward',end_point,videoFlowB,maskVOS)
         print('\nFinish edge completion.')
                     
     else:
@@ -726,6 +726,7 @@ def saveResult2(video_path,video):
         # imageio.mimsave(os.path.join(video_path, 'final.gif'), video_, format='gif', fps=12)
 
 
+
 def main(args):
 
     assert args.mode in ('object_removal', 'video_extrapolation'), (
@@ -752,50 +753,46 @@ def main(args):
         video,mask,videoFlowF,videoFlowB,end_point = setup_video_completion(args,video,corrFlowF,corrFlowB,out_path,1,0)  
         
         
-        maskVOS = mask.copy()*1
-        maskVOS2 = mask.copy()*1
-        corrFlowFori,corrFlowBori = corrFlowF.copy(),corrFlowB.copy()
-        corrFlowFori2,corrFlowBori2 = corrFlowF.copy(),corrFlowB.copy()
+   
         # Load Image inpainting model.
         _, _, Gs = misc.load_pkl('/home/loic/Documents/co-mod-gan/co-mod-gan-places2-050000.pkl')
-        video_comp = video_completion(Gs,args,video,mask,videoFlowF,videoFlowB,end_point,None,None,None,1)
+        video_comp = video_completion(Gs,args,video,mask,videoFlowF,videoFlowB,end_point,None,1)
         
+        maskVOS = mask.copy()*1
+        maskVOS2 = mask.copy()*1
         del mask
         video_path = os.path.join(out_path, 'final')
         saveResult(video_path,video_comp)
     if(1):
-        out_path = os.path.join(args.outroot, 'extrapolation')
-        #video,corrFlowF,corrFlowB,video2,corrFlowF2,corrFlowB2 = getFlowVideo(args,vid_path,out_path) 
+        out_path = os.path.join(args.outroot, 'extrapolation') 
         video,corrFlowF,corrFlowB = video_comp.copy(),videoFlowF.copy(),videoFlowB.copy()
         video2,corrFlowF2,corrFlowB2 = video_comp.copy(),videoFlowF.copy(),videoFlowB.copy()
-        for i in range(video_comp.shape[3]):
-            video2[:,:,:,i] = cv2.flip(video_comp[:,:,:,i],1)
+        del video_comp
+        for i in range(video.shape[3]):
+            video2[:,:,:,i] = cv2.flip(video2[:,:,:,i],1)
             maskVOS[:,:,i] = (maskVOS[:,:,i]*1).copy()
             maskVOS2[:,:,i] = cv2.flip((maskVOS2[:,:,i]*1).copy(),1)
-            if(i<video_comp.shape[3]-1):
+            if(i<video.shape[3]-1):
                 corrFlowF2[:,:,:,i] = cv2.flip(videoFlowF[:,:,:,i],1)
                 corrFlowB2[:,:,:,i] = cv2.flip(videoFlowB[:,:,:,i],1)
                 corrFlowF2[:,:,0,i]*=-1
                 corrFlowB2[:,:,0,i]*=-1
-                
-                corrFlowFori2[:,:,:,i] = cv2.flip(corrFlowFori2[:,:,:,i],1)
-                corrFlowBori2[:,:,:,i] = cv2.flip(corrFlowBori2[:,:,:,i],1)
-                corrFlowFori2[:,:,0,i]*=-1
-                corrFlowBori2[:,:,0,i]*=-1
-
+        
+        del videoFlowF,videoFlowB        
+        
         H0,W0,c,n = video.shape
         video1,mask1,videoFlowF1,videoFlowB1,end_point = setup_video_completion(args,video,corrFlowF,corrFlowB,out_path,0,1)     
         video2,mask2,videoFlowF2,videoFlowB2,end_point2 = setup_video_completion(args,video2,corrFlowF2,corrFlowB2,out_path,0,0)
         
-        del videoFlowF,videoFlowB
+        
    
         size_comp1 = video1.shape[1]-W0 
         size_comp2 = video2.shape[1]-W0 
         torch.cuda.empty_cache()
 
-        video_comp1 = video_completion(Gs,args,video1,mask1,videoFlowF1,videoFlowB1,end_point,corrFlowFori,corrFlowBori,maskVOS,0)
+        video_comp1 = video_completion(Gs,args,video1,mask1,videoFlowF1,videoFlowB1,end_point,maskVOS,0)
         
-        del video1,mask1,videoFlowF1,videoFlowB1,corrFlowFori,corrFlowBori,maskVOS
+        del video1,mask1,videoFlowF1,videoFlowB1,maskVOS
         
         video_path = os.path.join(args.outroot, 'extrapolation', 'final1')
         saveResult(video_path,video_comp1)  
@@ -803,9 +800,9 @@ def main(args):
 
         torch.cuda.empty_cache()
         
-        video_comp2 = video_completion(Gs,args,video2,mask2,videoFlowF2,videoFlowB2,end_point2,corrFlowFori2,corrFlowBori2,maskVOS2,0)
+        video_comp2 = video_completion(Gs,args,video2,mask2,videoFlowF2,videoFlowB2,end_point2,maskVOS2,0)
         
-        del video2,mask2,videoFlowF2,videoFlowB2,corrFlowFori2,corrFlowBori2,maskVOS2
+        del video2,mask2,videoFlowF2,videoFlowB2,maskVOS2
         
         video_path = os.path.join(args.outroot, 'extrapolation', 'final2')
         saveResult(video_path,video_comp2)
@@ -836,9 +833,9 @@ def main(args):
                 righthalf = Image.fromarray(righthalf.astype(np.uint8))
                 lefthalf = lefthalf.filter(ImageFilter.GaussianBlur(2))
                 righthalfGauss = righthalf.filter(ImageFilter.GaussianBlur(2))
-    
                 lefthalfBlur = np.asarray(lefthalf)
                 righthalfBlur = np.asarray(righthalf)
+                
             total_video_blur[:,:size_comp2,:,i] = lefthalf
             total_video_blur[:,size_comp2+W0:,:,i] = righthalf
         

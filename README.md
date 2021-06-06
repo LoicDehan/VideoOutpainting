@@ -25,15 +25,10 @@ pip install imageio-ffmpeg
 
 ## Usage
 
-- Save video frames
-```bash
-python VidToFrames.py --path ./name.mp4 --outroot ./frames/
-```
-
 - Video outpainting:
 ```bash
 cd tool
-python video_outpaint.py --path ../frames/ --outroot ../results/frames/ --W_scale 600
+python video_outpaint.py --path ../frames/ --outroot ../results/frames/ --W_scale 286
 ```
 replace 600 by amount of pixels added to each side.
 

@@ -30,7 +30,7 @@ pip install imageio-ffmpeg
 cd tool
 python video_outpaint.py --path ../frames/ --outroot ../results/frames/ --W_scale 286
 ```
-replace 600 by amount of pixels added to each side.
+replace 286 by amount of pixels added to each side.
 
 
 ## Acknowledgments
